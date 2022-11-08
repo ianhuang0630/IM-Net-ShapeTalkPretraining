@@ -655,4 +655,4 @@ print('Dilled the interface at IMNET-latent-interface-ld3de-pub.pkl')
 # out_file = 'latestIMNet_shapetalk_latents.pkl'
 # pickle_data(out_file, zs)
 
-mesh_paths = imw.eval_z(zs, output_folder)
+# mesh_paths = imw.eval_z(zs, output_folder)
