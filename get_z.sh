@@ -1,1 +1,1 @@
-python latents_interface.py --ae  --checkpoint_dir ckpt_ShapeTalkClasses
+python latents_interface.py --ae  --checkpoint_dir ckpt_ShapeTalkClasses_pub

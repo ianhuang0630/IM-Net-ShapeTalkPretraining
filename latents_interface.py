@@ -300,10 +300,10 @@ class IM_AE_inference(object):
                                     queue.append((pi,pj,pk))
         return model_float
 
-    def get_data_new(self, mode):
+    def get_data_new(self, voxel_input_dir, splits_csv, mode):
         # Hacky, but for now let's assume it's hardcoded
-        vox_samplings_top_dir = '/orion/u/ianhuang/Laser/convert/vox_preprocessing/'
-        traintest_splits = '/orion/u/ianhuang/Laser/convert/shape_representations/shape_representations/data/shapetalk/shape_splits/split_rs_2023.csv'
+        vox_samplings_top_dir = voxel_input_dir# '/orion/u/ianhuang/Laser/convert/vox_preprocessing/'
+        traintest_splits = splits_csv # '/orion/u/ianhuang/Laser/convert/shape_representations/shape_representations/data/shapetalk/shape_splits/split_rs_2023.csv'
         classes = os.listdir(vox_samplings_top_dir)
 
         all_voxels = []
@@ -501,7 +501,7 @@ class ImNetWrapper(object):
 
         return point_normal_list
 
-    def get_z(self, dsets=None):
+    def get_z(self, voxel_input_dir, splits_csv, dsets=None):
         if dsets is None:
             dataset_types = ('train', 'val', 'test')
         else:
@@ -513,7 +513,7 @@ class ImNetWrapper(object):
         final_zs = [] # [None]*len(dataset_types)
         for i, dataset_type in enumerate(dataset_types): 
             # final_ids[i], data_voxels, _, _ = self.im_ae.get_dataset(dataset_type)
-            this_ids, data_voxels, _, _ = self.im_ae.get_data_new(dataset_type)
+            this_ids, data_voxels, _, _ = self.im_ae.get_data_new(voxel_input_dir, splits_csv, dataset_type)
             final_ids.extend(this_ids)
             shape_num = len(data_voxels)
             hdf5_path = self.im_ae.checkpoint_dir+'/'+self.im_ae.model_dir+'/'+self.im_ae.dataset_name+'_{}_z.hdf5'.format(dataset_type) # config.z_postfix #'_train_z.hdf5'
@@ -540,8 +540,8 @@ class ImNetWrapper(object):
         # return {'ids': final_ids, 'zs': final_zs}
 
     def eval_z(self, z, output_dir):
-        if not os.path.exists(output_dir): 
-            os.makedirs(output_dir)
+        # if not os.path.exists(output_dir): 
+        #     os.makedirs(output_dir)
 
         ids = []
         zs = [] 
@@ -604,7 +604,7 @@ parser.add_argument("--learning_rate", action="store", dest="learning_rate", def
 parser.add_argument("--beta1", action="store", dest="beta1", default=0.5, type=float, help="Momentum term of adam [0.5]")
 parser.add_argument("--dataset", action="store", dest="dataset", default="all_vox256_img", help="The name of dataset")
 parser.add_argument("--checkpoint_dir", action="store", dest="checkpoint_dir", default="checkpoint", help="Directory name to save the checkpoints [checkpoint]")
-parser.add_argument("--data_dir", action="store", dest="data_dir", default="./databut i can just do the pointloudsd/all_vox256_img/", help="Root directory of dataset [data]")
+parser.add_argument("--data_dir", action="store", dest="data_dir", default="./data/all_vox256_img/", help="Root directory of dataset [data]")
 parser.add_argument("--sample_dir", action="store", dest="sample_dir", default="./samples/", help="Directory name to save the image samples [samples]")
 parser.add_argument("--sample_vox_size", action="store", dest="sample_vox_size", default=64, type=int, help="Voxel resolution for coarse-to-fine training [64]")
 parser.add_argument("--train", action="store_true", dest="train", default=False, help="True for training, False for testing [False]")
@@ -616,29 +616,42 @@ parser.add_argument("--getz", action="store_true", dest="getz", default=False, h
 parser.add_argument("--z_postfix", default='_train_z.hdf5', type=str)
 FLAGS = parser.parse_args()
 
-# converting panos's version
-category = "table"
-panos_data = next(unpickle_data('{}_imnet_results_for_ian.pkl'.format(category)))
-z_src = panos_data['z_codes'][0]
-z_tgt = panos_data['z_codes'][1]
-output_folder = '{}_output'.format(category)
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
-
-zs = {}
-for i in range(len(z_src)):
-    zs['{}_{}'.format(str(i), 'source')] = z_src[i]
-    zs['{}_{}'.format(str(i), 'target')] = z_tgt[i]
-    with open(os.path.join(output_folder, '{}_utt.txt'.format(str(i))), 'w') as f:
-        f.write(panos_data['utterance'][i])
-
 imw = ImNetWrapper(FLAGS)
-# import dill as pickle
-# with open('IMNET-latent-interface.pkl', 'wb') as f:
-#     pickle.dump(imw, f)
+import dill as pickle
+with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
+    pickle.dump(imw, f)
+voxel_input = "/orion/u/ianhuang/Laser/convert/vox_preprocessing2"
+split_csv = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv"
+assert os.path.exists(voxel_input) and os.path.exists(split_csv)
+# zs  = imw.get_z(voxel_input, split_csv) 
+# out_file = 'IMNet_shapetalk_latents_pub.pkl'
+# pickle_data(out_file, zs)
+
+import ipdb; ipdb.set_trace()
+# converting panos's version
+
+zs = next(unpickle_data('IMNet_shapetalk_latents_pub.pkl'))
+output_folder = 'debug112'
+# category = "chair"
+# panos_data = next(unpickle_data('{}_imnet_results_for_ian.pkl'.format(category)))
+# z_src = panos_data['z_codes'][0]
+# z_tgt = panos_data['z_codes'][1]
+# output_folder = '{}_output'.format(category)
+# if not os.path.exists(output_folder):
+#     os.makedirs(output_folder)
+
+# zs = {}
+# for i in range(len(z_src)):
+#     zs['{}_{}'.format(str(i), 'source')] = z_src[i]
+#     zs['{}_{}'.format(str(i), 'target')] = z_tgt[i]
+#     with open(os.path.join(output_folder, '{}_utt.txt'.format(str(i))), 'w') as f:
+#         f.write(panos_data['utterance'][i])
+
+
 # print('dilled.')
 # zs  = imw.get_z() 
 # out_file = 'IMNet_shapetalk_latents.pkl'
 # out_file = 'latestIMNet_shapetalk_latents.pkl'
 # pickle_data(out_file, zs)
+
 mesh_paths = imw.eval_z(zs, output_folder)

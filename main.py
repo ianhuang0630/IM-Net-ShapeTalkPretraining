@@ -19,6 +19,7 @@ parser.add_argument("--iteration", action="store", dest="iteration", default=0, 
 parser.add_argument("--learning_rate", action="store", dest="learning_rate", default=0.00005, type=float, help="Learning rate for adam [0.00005]")
 parser.add_argument("--beta1", action="store", dest="beta1", default=0.5, type=float, help="Momentum term of adam [0.5]")
 parser.add_argument("--dataset", action="store", dest="dataset", default="all_vox256_img", help="The name of dataset")
+parser.add_argument("--splits", action="store", dest="splits", default=None, help="Path to the training/testing splits csv")
 parser.add_argument("--checkpoint_dir", action="store", dest="checkpoint_dir", default="checkpoint", help="Directory name to save the checkpoints [checkpoint]")
 parser.add_argument("--data_dir", action="store", dest="data_dir", default="./data/all_vox256_img/", help="Root directory of dataset [data]")
 parser.add_argument("--sample_dir", action="store", dest="sample_dir", default="./samples/", help="Directory name to save the image samples [samples]")
@@ -34,7 +35,6 @@ FLAGS = parser.parse_args()
 
 if not os.path.exists(FLAGS.sample_dir):
     os.makedirs(FLAGS.sample_dir)
-
 if FLAGS.ae:
     im_ae = IM_AE(FLAGS)
     
@@ -44,7 +44,6 @@ if FLAGS.ae:
         im_ae.train(FLAGS)
     else:
         #im_ae.test_mesh(FLAGS)
-        import ipdb; ipdb.set_trace()
         im_ae.test_mesh_point(FLAGS)
 elif FLAGS.svr:
     im_svr = IM_SVR(FLAGS)

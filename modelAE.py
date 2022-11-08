@@ -174,43 +174,44 @@ class IM_AE(object):
 		self.data_dir = config.data_dir
 		self.checkpoint_dir = config.checkpoint_dir
 		self.dataset_name = config.dataset
+		self.split_file = config.splits
 
-		if True: # this allows us to load
-			_, self.data_voxels, self.data_points, self.data_values = self.get_data_new('train')
-			_, self.val_data_voxels, self.val_data_points, self.val_data_values = self.get_data_new('val')
-		else:
-			# TODO: the old loading style.
-			self.dataset_load = self.dataset_name + '_train'
-			# if not (config.train or config.getz):
-			if not config.train:
-				self.dataset_load = self.dataset_name + '_test'
-			data_hdf5_name = self.data_dir+'/'+self.dataset_load+'.hdf5'
-			if os.path.exists(data_hdf5_name):
-				data_dict = h5py.File(data_hdf5_name, 'r')
-				self.data_points = (data_dict['points_'+str(self.sample_vox_size)][:].astype(np.float32)+0.5)/256-0.5
-				self.data_values = data_dict['values_'+str(self.sample_vox_size)][:].astype(np.float32)
-				self.data_voxels = data_dict['voxels'][:]
-				data_dict.close()
-				#reshape to NCHW
-				self.data_voxels = np.reshape(self.data_voxels, [-1,1,self.input_size,self.input_size,self.input_size])
-			else:
-				print("error: cannot load "+data_hdf5_name)
-				exit(0)
+		_, self.data_voxels, self.data_points, self.data_values = self.get_data_new('train')
+		_, self.val_data_voxels, self.val_data_points, self.val_data_values = self.get_data_new('val')
 
-			# NEW 
-			self.val_dataset_load = self.dataset_name + '_test' # '_val'		
-			val_data_hdf5_name = self.data_dir+'/'+self.val_dataset_load+'.hdf5'
-			if os.path.exists(val_data_hdf5_name):
-				data_dict = h5py.File(data_hdf5_name, 'r')
-				self.val_data_points = (data_dict['points_'+str(self.sample_vox_size)][:].astype(np.float32)+0.5)/256-0.5
-				self.val_data_values = data_dict['values_'+str(self.sample_vox_size)][:].astype(np.float32)
-				self.val_data_voxels = data_dict['voxels'][:]
-				data_dict.close()
-				#reshape to NCHW
-				self.val_data_voxels = np.reshape(self.val_data_voxels, [-1,1,self.input_size,self.input_size,self.input_size])
-			else:
-				print("error: cannot load "+data_hdf5_name)
-				exit(0)
+		# else:
+		# 	# TODO: the old loading style.
+		# 	self.dataset_load = self.dataset_name + '_train'
+		# 	# if not (config.train or config.getz):
+		# 	if not config.train:
+		# 		self.dataset_load = self.dataset_name + '_test'
+		# 	data_hdf5_name = self.data_dir+'/'+self.dataset_load+'.hdf5'
+		# 	if os.path.exists(data_hdf5_name):
+		# 		data_dict = h5py.File(data_hdf5_name, 'r')
+		# 		self.data_points = (data_dict['points_'+str(self.sample_vox_size)][:].astype(np.float32)+0.5)/256-0.5
+		# 		self.data_values = data_dict['values_'+str(self.sample_vox_size)][:].astype(np.float32)
+		# 		self.data_voxels = data_dict['voxels'][:]
+		# 		data_dict.close()
+		# 		#reshape to NCHW
+		# 		self.data_voxels = np.reshape(self.data_voxels, [-1,1,self.input_size,self.input_size,self.input_size])
+		# 	else:
+		# 		print("error: cannot load "+data_hdf5_name)
+		# 		exit(0)
+
+		# 	# NEW 
+		# 	self.val_dataset_load = self.dataset_name + '_test' # '_val'		
+		# 	val_data_hdf5_name = self.data_dir+'/'+self.val_dataset_load+'.hdf5'
+		# 	if os.path.exists(val_data_hdf5_name):
+		# 		data_dict = h5py.File(data_hdf5_name, 'r')
+		# 		self.val_data_points = (data_dict['points_'+str(self.sample_vox_size)][:].astype(np.float32)+0.5)/256-0.5
+		# 		self.val_data_values = data_dict['values_'+str(self.sample_vox_size)][:].astype(np.float32)
+		# 		self.val_data_voxels = data_dict['voxels'][:]
+		# 		data_dict.close()
+		# 		#reshape to NCHW
+		# 		self.val_data_voxels = np.reshape(self.val_data_voxels, [-1,1,self.input_size,self.input_size,self.input_size])
+		# 	else:
+		# 		print("error: cannot load "+data_hdf5_name)
+		# 		exit(0)
 
 
 		if torch.cuda.is_available():
@@ -322,10 +323,10 @@ class IM_AE(object):
 
 	# hacky version
 	def get_data_new(self, mode):
-		# Hacky, but for now let's assume it's hardcoded
-		vox_samplings_top_dir = '/orion/u/ianhuang/Laser/convert/vox_preprocessing/'
-		traintest_splits = '/orion/u/ianhuang/Laser/convert/shape_representations/shape_representations/data/shapetalk/shape_splits/split_rs_2023.csv'
-		classes = os.listdir(vox_samplings_top_dir)
+		# TODO switch out to the self.data_dir
+		# vox_samplings_top_dir = self.data_dir # '/orion/u/ianhuang/Laser/convert/vox_preprocessing/'
+		# traintest_splits = self.split_file # '/orion/u/ianhuang/Laser/convert/shape_representations/shape_representations/data/shapetalk/shape_splits/split_rs_2023.csv'
+		classes = os.listdir(self.data_dir)
 
 		all_voxels = []
 		all_pt = []
@@ -333,13 +334,13 @@ class IM_AE(object):
 		name_list = [] 
 
 		for class_idx, class_name in enumerate(classes):
-			train_test_splits_csv = pd.read_csv(traintest_splits)
+			train_test_splits_csv = pd.read_csv(self.split_file)
 			subsplit = train_test_splits_csv[train_test_splits_csv['shape_class'] == class_name].to_dict(orient='records')
 			dataset_id_to_traintest = {} 
 			for tup in subsplit:
 				dataset_id_to_traintest[(tup['dataset'], tup['model_name'])] = tup['split']
 
-			input_txt_dir = os.path.join(vox_samplings_top_dir, class_name, class_name+'_vox256.txt')
+			input_txt_dir = os.path.join(self.data_dir, class_name, class_name+'_vox256.txt')
 			input_txt = open(input_txt_dir, 'r')
 			# this list is already sorted
 			input_list = [el.strip() for el in input_txt.readlines()]
@@ -361,8 +362,12 @@ class IM_AE(object):
 
 			print('class {} : {}    num_objects: {}'.format(class_idx + 1, class_name, len(shape_name_idx)))
 
-			voxel_hdf5_dir1 = os.path.join(vox_samplings_top_dir, class_name, class_name+'_vox256.hdf5')
+			voxel_hdf5_dir1 = os.path.join(self.data_dir, class_name, class_name+'_vox256.hdf5')
 			voxel_hdf5_file1 = h5py.File(voxel_hdf5_dir1, 'r')
+
+			# TODO : inject scaling correction? to hdf5 points, and perhaps hdf5 voxels though i'm not sure.
+
+
 			voxel_hdf5_voxels = voxel_hdf5_file1['voxels'][:][shape_name_idx]
 			voxel_hdf5_points = (voxel_hdf5_file1['points_{}'.format(self.sample_vox_size)][:][shape_name_idx].astype(np.float32)+0.5)/256-0.5
 			voxel_hdf5_values = voxel_hdf5_file1['values_{}'.format(self.sample_vox_size)][:][shape_name_idx].astype(np.float32)
@@ -633,34 +638,34 @@ class IM_AE(object):
 		return model_float
 	
 	#may introduce foldovers
-	def optimize_mesh(self, vertices, z, iteration = 3):
-		new_vertices = np.copy(vertices)
+	# def optimize_mesh(self, vertices, z, iteration = 3):
+	# 	new_vertices = np.copy(vertices)
 
-		new_vertices_ = np.expand_dims(new_vertices, axis=0)
-		new_vertices_ = torch.from_numpy(new_vertices_)
-		new_vertices_ = new_vertices_.to(self.device)
-		_, new_v_out_ = self.im_network(None, z, new_vertices_, is_training=False)
-		new_v_out = new_v_out_.detach().cpu().numpy()[0]
+	# 	new_vertices_ = np.expand_dims(new_vertices, axis=0)
+	# 	new_vertices_ = torch.from_numpy(new_vertices_)
+	# 	new_vertices_ = new_vertices_.to(self.device)
+	# 	_, new_v_out_ = self.im_network(None, z, new_vertices_, is_training=False)
+	# 	new_v_out = new_v_out_.detach().cpu().numpy()[0]
 		
-		for iter in range(iteration):
-			for i in [-1,0,1]:
-				for j in [-1,0,1]:
-					for k in [-1,0,1]:
-						if i==0 and j==0 and k==0: continue
-						offset = np.array([[i,j,k]],np.float32)/(self.real_size*6*2**iter)
-						current_vertices = vertices+offset
-						current_vertices_ = np.expand_dims(current_vertices, axis=0)
-						current_vertices_ = torch.from_numpy(current_vertices_)
-						current_vertices_ = current_vertices_.to(self.device)
-						_, current_v_out_ = self.im_network(None, z, current_vertices_, is_training=False)
-						current_v_out = current_v_out_.detach().cpu().numpy()[0]
-						keep_flag = abs(current_v_out-self.sampling_threshold)<abs(new_v_out-self.sampling_threshold)
-						keep_flag = keep_flag.astype(np.float32)
-						new_vertices = current_vertices*keep_flag+new_vertices*(1-keep_flag)
-						new_v_out = current_v_out*keep_flag+new_v_out*(1-keep_flag)
-			vertices = new_vertices
+	# 	for iter in range(iteration):
+	# 		for i in [-1,0,1]:
+	# 			for j in [-1,0,1]:
+	# 				for k in [-1,0,1]:
+	# 					if i==0 and j==0 and k==0: continue
+	# 					offset = np.array([[i,j,k]],np.float32)/(self.real_size*6*2**iter)
+	# 					current_vertices = vertices+offset
+	# 					current_vertices_ = np.expand_dims(current_vertices, axis=0)
+	# 					current_vertices_ = torch.from_numpy(current_vertices_)
+	# 					current_vertices_ = current_vertices_.to(self.device)
+	# 					_, current_v_out_ = self.im_network(None, z, current_vertices_, is_training=False)
+	# 					current_v_out = current_v_out_.detach().cpu().numpy()[0]
+	# 					keep_flag = abs(current_v_out-self.sampling_threshold)<abs(new_v_out-self.sampling_threshold)
+	# 					keep_flag = keep_flag.astype(np.float32)
+	# 					new_vertices = current_vertices*keep_flag+new_vertices*(1-keep_flag)
+	# 					new_v_out = current_v_out*keep_flag+new_v_out*(1-keep_flag)
+	# 		vertices = new_vertices
 		
-		return vertices
+	# 	return vertices
 
 	#output shape as ply
 	def test_mesh(self, config):
