@@ -620,18 +620,19 @@ imw = ImNetWrapper(FLAGS)
 import dill as pickle
 with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
     pickle.dump(imw, f)
-voxel_input = "/orion/u/ianhuang/Laser/convert/vox_preprocessing2"
-split_csv = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv"
-assert os.path.exists(voxel_input) and os.path.exists(split_csv)
+# voxel_input = "/orion/u/ianhuang/Laser/convert/vox_preprocessing2"
+# split_csv = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv"
+# assert os.path.exists(voxel_input) and os.path.exists(split_csv)
+
 # zs  = imw.get_z(voxel_input, split_csv) 
 # out_file = 'IMNet_shapetalk_latents_pub.pkl'
 # pickle_data(out_file, zs)
 
-import ipdb; ipdb.set_trace()
+print('Dilled the interface at IMNET-latent-interface-ld3de-pub.pkl')
 # converting panos's version
 
-zs = next(unpickle_data('IMNet_shapetalk_latents_pub.pkl'))
-output_folder = 'debug112'
+# zs = next(unpickle_data('IMNet_shapetalk_latents_pub.pkl'))
+# output_folder = 'debug112'
 # category = "chair"
 # panos_data = next(unpickle_data('{}_imnet_results_for_ian.pkl'.format(category)))
 # z_src = panos_data['z_codes'][0]
