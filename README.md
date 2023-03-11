@@ -33,7 +33,7 @@ python preprocessing_subsample_voxels.py [top_output_dir] [voxel_output_dir] [sc
 where:
 - `top_output_dir`: the path to directory with the intermediary outputs from running implicit extraction.
 - `voxel_output_dir`: the path to the directory where you would like the post-processed inputs to be, to be used later to retrain IM-NET
-- `scaling_pickle_path`: path to the pickle storing individual scaling parameters to each shape sample to better align with the ShapeTalk dataset.
+- `scaling_pickle_path`: path to the pickle storing individual scaling parameters to each shape sample to better align with the ShapeTalk dataset. (A default copy can be found in `data/`)
 
 
 
@@ -48,8 +48,7 @@ unzip ckpt_ShapeTalkClasses_pub.zip
 ```
 
 Run `python latents_interface.py` to create a pickle object that can be used to extract and decode IM-NET latents.
-Make sure to double check that the default commandline environments within `latent_interface.py` are suitable 
-(e.g. the default `data_dir` should be given the `voxel_output_dir` from above)
+Make sure to double check that the default commandline arguments within `latent_interface.py` are suitable 
 
 This interface object can be loaded and used like so:
 
@@ -58,8 +57,7 @@ import dill as pickle
 with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
     imw = pickle.load(f)
 
-zs = imw.get_z(VOXEL_OUTPUT_DIR, SPLITS_CSV) # get the latent code from inputs from VOXEL_OUTPUT_DIR with splits from SPLITS_CSV
-
+zs = imw.get_z(VOXEL_OUTPUT_DIR, SPLITS_CSV) # get the latent code from inputs from VOXEL_OUTPUT_DIR with splits from SPLITS_CSV (default copy can be found in `data/`)
 imw.eval_z(zs, MESH_OUTPUT_FOLDER) # extracts meshes from latents into MESH_OUTPUT_FOLDER
 
 ```
@@ -69,7 +67,7 @@ imw.eval_z(zs, MESH_OUTPUT_FOLDER) # extracts meshes from latents into MESH_OUTP
 
 Retraining requires you to run `bash train_ae_custom.sh`. However, before you do that, make sure that you've edited `train_ae_custom.sh` such that
 1. `--data_dir` commandline argument is given thecorrect path to the voxel output dir (see `voxel_output_dir`above)
-2. `--splits` commandline argument is given the correct path to the splits csv.
+2. `--splits` commandline argument is given the correct path to the splits csv. (default copy can be found in `data/`)
 3. `-- checkpoint` commandline argument is given the path to the desired output checkpoint directory for your model weights.
 
 
