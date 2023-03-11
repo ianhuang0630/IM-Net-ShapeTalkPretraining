@@ -38,6 +38,7 @@ batch_size_3 = 16*16*16*4
 
 
 
+
 '''
 #do not use progressive sampling (center2x2x2 -> 4x4x4 -> 6x6x6 ->...)
 #if sample non-center points only for inner(1)-voxels,
@@ -77,7 +78,7 @@ def sample_point_in_cube(block,target_value,halfie):
 
 
 
-def get_points_from_vox(q, name_list):
+def get_points_from_vox(q, name_list, scale_list):
     name_num = len(name_list)
     for idx in tqdm(range(name_num)):
         print(idx,'/',name_num)
@@ -97,8 +98,15 @@ def get_points_from_vox(q, name_list):
                 for k in range(16):
                     voxel_model_256[i*16:i*16+16,j*16:j*16+16,k*16:k*16+16] = voxel_model_b[voxel_model_bi[i,j,k]]
         #add flip&transpose to convert coord from shapenet_v1 to shapenet_v2
-        voxel_model_256 = np.flip(np.transpose(voxel_model_256, (2,1,0)),2)
-        
+        voxel_model_256_ = np.zeros([256, 256, 256], np.uint8)
+        is_, js_, ks_ = np.where(voxel_model_256)
+        scale = scale_list[idx] # replace!
+        is_ = np.round((is_ - 128)/scale + 128).astype(int)
+        js_ = np.round((js_ - 128)/scale + 128).astype(int)
+        ks_ = np.round((ks_ - 128)/scale + 128).astype(int)
+        voxel_model_256_[is_, js_, ks_] = 1 
+        voxel_model_256 = voxel_model_256_
+
         #vertices, triangles = mcubes.marching_cubes(voxel_model_256, 0.5)
         #mcubes.export_mesh(vertices, triangles, "samples/"+name_list[idx][1][-10:-4]+"_origin.dae", str(idx))
         
@@ -148,6 +156,10 @@ def get_points_from_vox(q, name_list):
         
         #vertices, triangles = mcubes.marching_cubes(voxel_model_256, 0.5)
         #mcubes.export_mesh(vertices, triangles, "samples/"+name_list[idx][1][-10:-4]+"_alt.dae", str(idx))
+        
+        
+        
+        
         
         #compress model 256 -> 64
         dim_voxel = 64
@@ -317,23 +329,77 @@ def list_image(root, exts):
     return image_list
 
 
-def create_hdf5_output(output_dir, categories):
-    """
-    Input:
-        output_dir (str): toplevel directory
-        categories (list): list of strings
-    """
+
+
+
+
+if __name__ == '__main__':
+    # print(class_name)
+    # if not os.path.exists(class_name):
+    #     os.makedirs(class_name)
+
+    #dir of voxel models
+    # voxel_input = "/local-scratch/zhiqinc/shapenet_hsp/modelBlockedVoxels256/"+class_name[:8]+"/"
+   
+    assert len(sys.argv) == 4:
+        voxel_mat_toplevel = sys.argv[1] # '/orion/u/ianhuang/Laser/impl_ian2'
+        output_dir = sys.argv[2]  # 'vox_preprocessing2'
+        scaling_pickle = sys.argv[3]  #'/orion/u/ianhuang/shapetalk_retraining/scaling_used_in_rendered_imgs.pkl'
+
+    target_classes = None
+    if False: # if len(sys.argv) > 1:
+        target_classes_txt = sys.argv[1] 
+        with open(target_classes_txt, 'r') as f:
+            target_classes = [el.strip() for el in f.readlines()] 
+    
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+    categories = os.listdir(voxel_mat_toplevel)
+
+    print('categories:\n {}'.format(categories))
+    
+    important_categories  = []
+    if target_classes is not None:
+        for target_class in target_classes:
+            if target_class in categories:
+                important_categories.append(target_class)
+            else:
+                print('{} not observed in {}'.format(target_class, voxel_mat_toplevel))
+    else:
+        important_categories = categories
+    
+    
+    # Load in the scales!
+    from six.moves import cPickle
+    def unpickle_data(file_name, python2_to_3=False): 
+        in_file = open(file_name, 'rb') 
+        if python2_to_3: 
+            size = cPickle.load(in_file, encoding='latin1') 
+        else: 
+            size = cPickle.load(in_file) 
+     
+        for _ in range(size): 
+            if python2_to_3: 
+                yield cPickle.load(in_file, encoding='latin1') 
+            else: 
+                yield cPickle.load(in_file) 
+        in_file.close()     
+    
+
+    scaling = next(unpickle_data(scaling_pickle))
     
     for cat in important_categories:    
-        # make the output directory if it's not already written
+        print("{} started.".format(cat))
+        # below is the packaging.
         if not os.path.isdir(os.path.join(output_dir, cat)):
             os.makedirs(os.path.join(output_dir, cat))
-        # directory with the voxel .mat's
         voxel_input = os.path.join(voxel_mat_toplevel, cat)
-        # name of output file
-        hdf5_path = os.path.join(output_dir, cat, cat+'_vox256.hdf5')
-        fout = open(os.path.join(output_dir, cat, cat+'_vox256.txt'),'w',newline='')
-        fstatistics = open(os.path.join(output_dir, cat, '/statistics.txt'),'w',newline='')
+        #name of output file
+        hdf5_path =  os.path.join(output_dir, cat+'/'+cat+'_vox256.hdf5')
+        #obj_list
+        fout = open(os.path.join(output_dir, cat+'/'+cat+'_vox256.txt'),'w',newline='')
+        #record statistics
+        fstatistics = open(os.path.join(output_dir, cat+'/statistics.txt'),'w',newline='')
         
         exceed_32 = 0
         exceed_64 = 0
@@ -353,15 +419,27 @@ def create_hdf5_output(output_dir, categories):
         #prepare list of names
         num_of_process = 12
         list_of_list_of_names = []
+        list_of_list_of_scalings = []
         for i in range(num_of_process):
             list_of_names = []
+            scalings_per_name = []
             for j in range(i,name_num,num_of_process):
+                scalings_per_name.append( scaling["{}/{}".format(cat, name_list[j])][0] )
                 list_of_names.append([j, os.path.join(voxel_input,name_list[j]+".mat")]) # assign the full .mat path to the ith process.
             list_of_list_of_names.append(list_of_names)  #all the assignments of .mat's to this worker.
+            list_of_list_of_scalings.append(scalings_per_name)
         
-        #map processes
+        # normalize using the minimal scale across the category...
+        min_scale = min([min(scales) for scales in list_of_list_of_scalings]) 
+        list_of_list_of_scalings = [[el/min_scale for el in list_of_scalings] for list_of_scalings in list_of_list_of_scalings]
+
         q = Queue()
-        workers = [Process(target=get_points_from_vox, args = (q, list_of_names)) for list_of_names in list_of_list_of_names]
+        
+        # below line for debugging
+        # get_points_from_vox(q, list_of_list_of_names[0], list_of_list_of_scalings[0])
+
+        #map processes
+        workers = [Process(target=get_points_from_vox, args = (q, list_of_names, list_of_scalings)) for list_of_names, list_of_scalings in zip(list_of_list_of_names, list_of_list_of_scalings)]
 
         for p in workers:
             p.start()
@@ -411,41 +489,6 @@ def create_hdf5_output(output_dir, categories):
         
         fstatistics.close()
         hdf5_file.close()
-        print("finished")
+        print("{} finished".format(cat))
 
 
-if __name__ == '__main__':
-    # print(class_name)
-    # if not os.path.exists(class_name):
-    #     os.makedirs(class_name)
-
-    #dir of voxel models
-    # voxel_input = "/local-scratch/zhiqinc/shapenet_hsp/modelBlockedVoxels256/"+class_name[:8]+"/"
-    target_classes = None
-    if len(sys.argv) > 1:
-        target_classes_txt = sys.argv[1] 
-        with open(target_classes_txt, 'r') as f:
-            target_classes = [el.strip() for el in f.readlines()] 
-    voxel_mat_toplevel = '/orion/u/ianhuang/Laser/impl_ian'
-
-    import ipdb; ipdb.set_trace()
-    output_dir = 'vox_preprocessing'
-    if not os.path.isdir(output_dir):
-        os.makedirs(output_dir)
-    categories = os.listdir(voxel_mat_toplevel)
-
-    print('categories:\n {}'.format(categories))
-    # TODO: here we should be able to have the "high priority categories" be processed first.
-    important_categories  = []
-    if target_classes is not None:
-        for target_class in target_classes:
-            if target_class in categories:
-                important_categories.append(target_class)
-            else:
-                print('{} not observed in {}'.format(target_class, voxel_mat_toplevel))
-    else:
-        important_categories = categories
-    
-    # this is the important bit.
-    create_hdf5_output(output_dir, important_categories);
-    
