@@ -45,6 +45,7 @@ First, download our pretrained IM-NET weights:
 cd ckpt_ShapeTalkClasses_pub/
 wget http://download.cs.stanford.edu/orion/changeit3d/ckpt_ShapeTalkClasses_pub.zip .
 unzip ckpt_ShapeTalkClasses_pub.zip
+cd ../
 ```
 
 Run `python latents_interface.py` to create a pickle object that can be used to extract and decode IM-NET latents.
