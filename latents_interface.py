@@ -504,7 +504,7 @@ class ImNetWrapper(object):
         return dict(zip(final_ids, final_zs))
 
 
-    def eval_z(self, z, output_dir):
+    def eval_z_old(self, z, output_dir):
 
         ids = []
         zs = [] 
@@ -542,6 +542,72 @@ class ImNetWrapper(object):
             pc_paths.append(pc_path)
     
         return mesh_paths, pc_paths
+    
+    
+    @torch.no_grad()
+    def eval_z(self, z, optimize_mesh=False, compute_pc=True, npc_points=4096, save_output=False, 
+               skip_existing=False, output_dir=None, verbose=False, return_results=True, shuffle_order=False, iso_value=None):
+        ids = []
+        zs = [] 
+        for id_ in sorted(list(z.keys()), reverse=True):
+            ids.append(id_)
+            zs.append(z[id_])        
+        zs = np.stack(zs)
+        
+        if shuffle_order:
+            ids = np.array(ids)
+            ridx = np.arange(len(ids))
+            np.random.shuffle(ridx)
+            ids = ids[ridx]
+            zs = zs[ridx]
+            
+        self.im_ae.im_network.eval()
+        meshes = dict()
+        pcs = dict()
+                
+        if iso_value is None:
+            iso_value = self.im_ae.sampling_threshold
+            
+        for i in tqdm(range(len(zs))):
+            if verbose:
+                print(ids[i])
+            
+            if skip_existing and output_dir is not None:
+                mesh_path = output_dir + "/" + ids[i] + ".ply"
+                if os.path.exists(mesh_path):
+                    continue
+
+            model_z = torch.tensor(zs[i:i+1]).to(self.im_ae.device)
+            model_float = self.im_ae.z2voxel(model_z)
+            vertices, triangles = mcubes.marching_cubes(model_float, iso_value)
+            vertices = (vertices.astype(np.float32) - 0.5) / self.im_ae.real_size - 0.5
+            
+            if optimize_mesh:
+                vertices = self.im_ae.optimize_mesh(vertices,model_z)
+
+            if return_results:
+                meshes[ids[i]] = (vertices, triangles)
+                        
+            if save_output:                
+                mesh_path = output_dir + "/" + ids[i] + ".ply"
+                if not os.path.exists(os.path.dirname(mesh_path)):
+                    os.makedirs(os.path.dirname(mesh_path))
+                self.write_ply_triangle(mesh_path, vertices, triangles)
+                        
+            ##  sample surface points
+            if compute_pc:
+                sampled_points_normals = self.sample_points_triangle(vertices, triangles, npc_points)
+                final_pc = sampled_points_normals[:, :3].squeeze()
+                if return_results:
+                    pcs[ids[i]] = final_pc
+                
+                if save_output:
+                    pc_path = output_dir + "/" + ids[i] + '.npz'
+                    if not os.path.exists(os.path.dirname(pc_path)):
+                        os.makedirs(os.path.dirname(pc_path))                
+                    np.savez(pc_path, pc=final_pc)                        
+                
+        return meshes, pcs
 
 
 parser = argparse.ArgumentParser()
