@@ -504,44 +504,44 @@ class ImNetWrapper(object):
         return dict(zip(final_ids, final_zs))
 
 
-    def eval_z_old(self, z, output_dir):
+    # def eval_z(self, z, output_dir):
 
-        ids = []
-        zs = [] 
-        for id_ in sorted(list(z.keys()), reverse=True):
-            ids.append(id_)
-            zs.append(z[id_])
-        zs = np.stack(zs)
+    #     ids = []
+    #     zs = [] 
+    #     for id_ in sorted(list(z.keys()), reverse=True):
+    #         ids.append(id_)
+    #         zs.append(z[id_])
+    #     zs = np.stack(zs)
 
-        self.im_ae.im_network.eval()
-        mesh_paths = []
-        pc_paths = []
+    #     self.im_ae.im_network.eval()
+    #     mesh_paths = []
+    #     pc_paths = []
         
-        for i in tqdm(range(len(zs))):
-            print(ids[i])
-            model_z = torch.tensor(zs[i:i+1]).to(self.im_ae.device)
-            model_float = self.im_ae.z2voxel(model_z)
+    #     for i in tqdm(range(len(zs))):
+    #         print(ids[i])
+    #         model_z = torch.tensor(zs[i:i+1]).to(self.im_ae.device)
+    #         model_float = self.im_ae.z2voxel(model_z)
 
-            vertices, triangles = mcubes.marching_cubes(model_float, self.im_ae.sampling_threshold)
-            vertices = (vertices.astype(np.float32)-0.5)/self.im_ae.real_size-0.5
+    #         vertices, triangles = mcubes.marching_cubes(model_float, self.im_ae.sampling_threshold)
+    #         vertices = (vertices.astype(np.float32)-0.5)/self.im_ae.real_size-0.5
 
-            mesh_path = output_dir+"/"+ids[i]+".ply"
-            if os.path.exists(mesh_path):
-                continue
+    #         mesh_path = output_dir+"/"+ids[i]+".ply"
+    #         if os.path.exists(mesh_path):
+    #             continue
 
-            if not os.path.exists(os.path.dirname(mesh_path)):
-                os.makedirs(os.path.dirname(mesh_path))
-            self.write_ply_triangle(mesh_path, vertices, triangles)
-            mesh_paths.append(mesh_path) 
-            pc_path = output_dir+"/"+ids[i]+'.npz'
-            if not os.path.exists(os.path.dirname(pc_path)):
-                os.makedirs(os.path.dirname(pc_path))
-            sampled_points_normals = self.sample_points_triangle(vertices, triangles, 8192)
-            final_pc = sampled_points_normals[:, :3].squeeze()
-            np.savez(pc_path, pc=final_pc)
-            pc_paths.append(pc_path)
+    #         if not os.path.exists(os.path.dirname(mesh_path)):
+    #             os.makedirs(os.path.dirname(mesh_path))
+    #         self.write_ply_triangle(mesh_path, vertices, triangles)
+    #         mesh_paths.append(mesh_path) 
+    #         pc_path = output_dir+"/"+ids[i]+'.npz'
+    #         if not os.path.exists(os.path.dirname(pc_path)):
+    #             os.makedirs(os.path.dirname(pc_path))
+    #         sampled_points_normals = self.sample_points_triangle(vertices, triangles, 8192)
+    #         final_pc = sampled_points_normals[:, :3].squeeze()
+    #         np.savez(pc_path, pc=final_pc)
+    #         pc_paths.append(pc_path)
     
-        return mesh_paths, pc_paths
+    #     return mesh_paths, pc_paths
     
     
     @torch.no_grad()
@@ -630,42 +630,11 @@ parser.add_argument("--z_postfix", default='_train_z.hdf5', type=str)
 FLAGS = parser.parse_args()
 
 imw = ImNetWrapper(FLAGS)
+print(imw)
+
 import dill as pickle
+
 with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
     pickle.dump(imw, f)
-# voxel_input = "/orion/u/ianhuang/Laser/convert/vox_preprocessing2"
-# split_csv = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv"
-# assert os.path.exists(voxel_input) and os.path.exists(split_csv)
-
-# zs  = imw.get_z(voxel_input, split_csv) 
-# out_file = 'IMNet_shapetalk_latents_pub.pkl'
-# pickle_data(out_file, zs)
 
 print('Dilled the interface at IMNET-latent-interface-ld3de-pub.pkl')
-# converting panos's version
-
-# zs = next(unpickle_data('IMNet_shapetalk_latents_pub.pkl'))
-# output_folder = 'debug112'
-# category = "chair"
-# panos_data = next(unpickle_data('{}_imnet_results_for_ian.pkl'.format(category)))
-# z_src = panos_data['z_codes'][0]
-# z_tgt = panos_data['z_codes'][1]
-# output_folder = '{}_output'.format(category)
-# if not os.path.exists(output_folder):
-#     os.makedirs(output_folder)
-
-# zs = {}
-# for i in range(len(z_src)):
-#     zs['{}_{}'.format(str(i), 'source')] = z_src[i]
-#     zs['{}_{}'.format(str(i), 'target')] = z_tgt[i]
-#     with open(os.path.join(output_folder, '{}_utt.txt'.format(str(i))), 'w') as f:
-#         f.write(panos_data['utterance'][i])
-
-
-# print('dilled.')
-# zs  = imw.get_z() 
-# out_file = 'IMNet_shapetalk_latents.pkl'
-# out_file = 'latestIMNet_shapetalk_latents.pkl'
-# pickle_data(out_file, zs)
-
-# mesh_paths = imw.eval_z(zs, output_folder)
