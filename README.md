@@ -8,8 +8,8 @@ should enable you to use your own virtual environments during inference, and our
 
 ## Setup
 
-The dependencies consist of:
-- python 3.5 with numpy, scipy, h5py, tqdm
+The main dependencies consist of:
+- python 3.5 with numpy, scipy, h5py, tqdm, pandas
 - pytorch 
 - PyMCubes 
 
@@ -17,7 +17,7 @@ You can do this by:
 ```bash
 conda create -n imnet python=3.5 
 conda activate imnet
-pip install scipy numpy h5py tqdm
+pip install scipy numpy h5py tqdm pandas
 pip install --upgrade PyMCubes
 conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
 ```
