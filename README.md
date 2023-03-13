@@ -53,7 +53,8 @@ unzip ckpt_ShapeTalkClasses_pub.zip
 ```
 
  ~~Run `python latents_interface.py` to create a pickle object that can be used to extract and decode IM-NET latents.
-Make sure to double check that the default commandline arguments within `latent_interface.py` are suitable  ~~
+Make sure to double check that the default commandline arguments within `latent_interface.py` are suitable
+
 Run `.  get_pikled_AE_interface.sh` to create a pickle object that can be used to extract and decode IM-NET latents.
 
 This interface object can be loaded and used like so:
