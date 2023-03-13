@@ -502,47 +502,6 @@ class ImNetWrapper(object):
             hdf5_file.close()
 
         return dict(zip(final_ids, final_zs))
-
-
-    # def eval_z(self, z, output_dir):
-
-    #     ids = []
-    #     zs = [] 
-    #     for id_ in sorted(list(z.keys()), reverse=True):
-    #         ids.append(id_)
-    #         zs.append(z[id_])
-    #     zs = np.stack(zs)
-
-    #     self.im_ae.im_network.eval()
-    #     mesh_paths = []
-    #     pc_paths = []
-        
-    #     for i in tqdm(range(len(zs))):
-    #         print(ids[i])
-    #         model_z = torch.tensor(zs[i:i+1]).to(self.im_ae.device)
-    #         model_float = self.im_ae.z2voxel(model_z)
-
-    #         vertices, triangles = mcubes.marching_cubes(model_float, self.im_ae.sampling_threshold)
-    #         vertices = (vertices.astype(np.float32)-0.5)/self.im_ae.real_size-0.5
-
-    #         mesh_path = output_dir+"/"+ids[i]+".ply"
-    #         if os.path.exists(mesh_path):
-    #             continue
-
-    #         if not os.path.exists(os.path.dirname(mesh_path)):
-    #             os.makedirs(os.path.dirname(mesh_path))
-    #         self.write_ply_triangle(mesh_path, vertices, triangles)
-    #         mesh_paths.append(mesh_path) 
-    #         pc_path = output_dir+"/"+ids[i]+'.npz'
-    #         if not os.path.exists(os.path.dirname(pc_path)):
-    #             os.makedirs(os.path.dirname(pc_path))
-    #         sampled_points_normals = self.sample_points_triangle(vertices, triangles, 8192)
-    #         final_pc = sampled_points_normals[:, :3].squeeze()
-    #         np.savez(pc_path, pc=final_pc)
-    #         pc_paths.append(pc_path)
-    
-    #     return mesh_paths, pc_paths
-    
     
     @torch.no_grad()
     def eval_z(self, z, optimize_mesh=False, compute_pc=True, npc_points=4096, save_output=False, 
