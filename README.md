@@ -7,13 +7,19 @@ It also supports the serialization of trained models so that they can be used fo
 should enable you to use your own virtual environments during inference, and our virtual environment during training.
 
 ## Setup
-Make a conda environment according to the `environment.yaml` provided.
 
-```
-conda env create -f environment.yaml
+The dependencies consist of:
+- python 3.5 with numpy, scipy, h5py, tqdm
+- pytorch 
+- PyMCubes 
+
+You can do this by: 
+```bash
+conda create -n imnet python=3.5 
 conda activate imnet
+pip install scipy numpy h5py tqdm
+conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
 ```
-
 
 ## Preprocessing of data
 

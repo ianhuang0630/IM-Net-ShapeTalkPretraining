@@ -2,11 +2,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import argparse
-# from latent_interface_class import  ImNetWrapper
 
 import os
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
 from modelAE import IM_AE, im_network
 
 import pandas as pd
@@ -20,38 +19,7 @@ import torch
 from six.moves import cPickle
 import math
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import torch
-import matplotlib.cm as cm
-from mpl_toolkits.mplot3d import Axes3D  # nofa: #401
-
 from PIL import Image
-
-# Visualization
-def visualize_point_clouds_3d(pcl_lst, title_lst=None):
-    # pts, gtr, inp):
-    if title_lst is None:
-        title_lst = [""] * len(pcl_lst)
-
-    fig = plt.figure(figsize=(3 * len(pcl_lst), 3))
-    for idx, (pts, title) in enumerate(zip(pcl_lst, title_lst)):
-        ax1 = fig.add_subplot(1, len(pcl_lst), 1 + idx, projection='3d')
-        ax1.set_title(title)
-        
-        ax1.scatter(pts[:, 0], pts[:, 1], pts[:, 2], s=5)
-        # ax1.set_xlim(-1, 1)
-        # ax1.set_ylim(-1, 1)
-        # ax1.set_zlim(-1, 1)
-    fig.canvas.draw()
-
-    # grab the pixel buffer and dump it into a numpy array
-    res = np.array(fig.canvas.renderer._renderer)
-    res = np.transpose(res, (2, 0, 1))
-
-    plt.close()
-    return res
 
 def unpickle_data(file_name, python2_to_3=False):
     """Restore data previously saved with pickle_data().
@@ -301,9 +269,8 @@ class IM_AE_inference(object):
         return model_float
 
     def get_data_new(self, voxel_input_dir, splits_csv, mode):
-        # Hacky, but for now let's assume it's hardcoded
-        vox_samplings_top_dir = voxel_input_dir# '/orion/u/ianhuang/Laser/convert/vox_preprocessing/'
-        traintest_splits = splits_csv # '/orion/u/ianhuang/Laser/convert/shape_representations/shape_representations/data/shapetalk/shape_splits/split_rs_2023.csv'
+        vox_samplings_top_dir = voxel_input_dir
+        traintest_splits = splits_csv 
         classes = os.listdir(vox_samplings_top_dir)
 
         all_voxels = []
@@ -512,7 +479,7 @@ class ImNetWrapper(object):
         final_ids = [] # [None]*len(dataset_types)
         final_zs = [] # [None]*len(dataset_types)
         for i, dataset_type in enumerate(dataset_types): 
-            # final_ids[i], data_voxels, _, _ = self.im_ae.get_dataset(dataset_type)
+
             this_ids, data_voxels, _, _ = self.im_ae.get_data_new(voxel_input_dir, splits_csv, dataset_type)
             final_ids.extend(this_ids)
             shape_num = len(data_voxels)
@@ -527,7 +494,6 @@ class ImNetWrapper(object):
                 batch_voxels = torch.from_numpy(batch_voxels)
                 batch_voxels = batch_voxels.to(self.im_ae.device)
                 out_z,_ = self.im_ae.im_network(batch_voxels, None, None, is_training=False)
-                # zs.append(out_z)
                 hdf5_file["zs"][t:t+1,:] = out_z.detach().cpu().numpy()
             hdf5_file.close()
             hdf5_file = h5py.File(hdf5_path, mode='r')
@@ -537,11 +503,8 @@ class ImNetWrapper(object):
 
         return dict(zip(final_ids, final_zs))
 
-        # return {'ids': final_ids, 'zs': final_zs}
 
     def eval_z(self, z, output_dir):
-        # if not os.path.exists(output_dir): 
-        #     os.makedirs(output_dir)
 
         ids = []
         zs = [] 
@@ -553,19 +516,14 @@ class ImNetWrapper(object):
         self.im_ae.im_network.eval()
         mesh_paths = []
         pc_paths = []
-        # iterating through the 
+        
         for i in tqdm(range(len(zs))):
             print(ids[i])
-            # batch_voxels_ = self.data_voxels[t:t+1].astype(np.float32)
-            # batch_voxels = torch.from_numpy(batch_voxels_)
-            # batch_voxels = batch_voxels.to(self.device)
-            # model_z,_ = self.im_network(batch_voxels, None, None, is_training=False)
             model_z = torch.tensor(zs[i:i+1]).to(self.im_ae.device)
             model_float = self.im_ae.z2voxel(model_z)
 
             vertices, triangles = mcubes.marching_cubes(model_float, self.im_ae.sampling_threshold)
             vertices = (vertices.astype(np.float32)-0.5)/self.im_ae.real_size-0.5
-            #vertices = self.optimize_m esh(vertices,model_z)
 
             mesh_path = output_dir+"/"+ids[i]+".ply"
             if os.path.exists(mesh_path):
@@ -575,25 +533,14 @@ class ImNetWrapper(object):
                 os.makedirs(os.path.dirname(mesh_path))
             self.write_ply_triangle(mesh_path, vertices, triangles)
             mesh_paths.append(mesh_path) 
-            # print("[sample]")
-            # 
-            ##  sample surface points
             pc_path = output_dir+"/"+ids[i]+'.npz'
             if not os.path.exists(os.path.dirname(pc_path)):
                 os.makedirs(os.path.dirname(pc_path))
             sampled_points_normals = self.sample_points_triangle(vertices, triangles, 8192)
             final_pc = sampled_points_normals[:, :3].squeeze()
             np.savez(pc_path, pc=final_pc)
-            # self.write_ply_point_normal(pc_path, sampled_points_normals)
             pc_paths.append(pc_path)
     
-            # img_path = output_dir+"/"+ids[i]+".png"
-            # if not os.path.exists(os.path.dirname(img_path)):
-            #     os.makedirs(os.path.dirname(img_path))
-            # img = visualize_point_clouds_3d([final_pc], ['final_pc']) 
-            # img = Image.fromarray(img[:3].transpose(1,2,0))
-            # img.save(img_path)
-
         return mesh_paths, pc_paths
 
 

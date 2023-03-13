@@ -1,9 +1,0 @@
-name: imnet
-channels:
-  - defaults
-dependencies:
-  - python=3.5
-  - torchvision==0.4.0
-  - pytorch==1.2.0
-  - cudatoolkit=10.0
-prefix: /orion/u/ianhuang/anaconda3/envs/imnet
