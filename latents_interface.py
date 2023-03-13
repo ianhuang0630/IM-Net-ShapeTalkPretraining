@@ -399,8 +399,6 @@ class ImNetWrapper(object):
             for ii in range(len(vertices)):
                 fout.write(str(vertices[ii,0])+" "+str(vertices[ii,1])+" "+str(vertices[ii,2])+" "+str(normals[ii,0])+" "+str(normals[ii,1])+" "+str(normals[ii,2])+"\n")
         fout.close()
-
-
     
     def sample_points_triangle(self, vertices, triangles, num_of_points):
         epsilon = 1e-6
@@ -589,7 +587,6 @@ parser.add_argument("--z_postfix", default='_train_z.hdf5', type=str)
 FLAGS = parser.parse_args()
 
 imw = ImNetWrapper(FLAGS)
-print(imw)
 
 import dill as pickle
 
