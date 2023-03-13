@@ -9,7 +9,7 @@ should enable you to use your own virtual environments during inference, and our
 ## Setup
 
 The main dependencies consist of:
-- python 3.5 with numpy, scipy, h5py, tqdm, pandas
+- python 3.5 with numpy, scipy, h5py, tqdm, pandas, dill
 - pytorch 
 - PyMCubes 
 
@@ -17,15 +17,14 @@ You can do this by:
 ```bash
 conda create -n imnet python=3.5 
 conda activate imnet
-pip install scipy numpy h5py tqdm pandas
+pip install scipy numpy h5py tqdm pandas dill
 pip install --upgrade PyMCubes
 conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
 ```
 
 ## Preprocessing of data
 
-The first thing that needs to be done is to create voxel representations of the occupancy fields of
-shapes given the meshes. The way to do that is by running the implicit extraction code in the `shape_representations` repo:
+If you wish to retrain ImNet, or simply encode shapes with it,  first thing that needs to be done is to create voxel representations of the occupancy fields of shapes given the meshes. The way to do that is by running the implicit extraction code in the `shape_representations` repo:
 [jupyter notebook](https://github.com/optas/shape_representations/blob/master/shape_representations/notebooks/extract_shape_implicits_for_shapetalk_classes.ipynb)
 
 Make sure to change the values of `top_shapenet_dir`, `top_partnet_dir`, `top_modelnet_dir`, `top_output_dir` to your setting.
