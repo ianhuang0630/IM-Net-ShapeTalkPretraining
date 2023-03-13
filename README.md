@@ -18,6 +18,7 @@ You can do this by:
 conda create -n imnet python=3.5 
 conda activate imnet
 pip install scipy numpy h5py tqdm
+pip install --upgrade PyMCubes
 conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
 ```
 
