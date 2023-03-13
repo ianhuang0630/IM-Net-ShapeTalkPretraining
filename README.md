@@ -24,7 +24,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvi
 
 ## Preprocessing of data
 
-If you wish to retrain ImNet, or simply encode shapes with it,  first thing that needs to be done is to create voxel representations of the occupancy fields of shapes given the meshes. The way to do that is by running the implicit extraction code in the `shape_representations` repo:
+If you wish to retrain ImNet, or simply encode shapes with it,  first thing that needs to be done is to create voxel representations of the occupancy fields of shapes given the meshes. If you simply want to _decode_ existing latent codes you can skip directly to the next paragraph. The way to do that is by running the implicit extraction code in the `shape_representations` repo:
 [jupyter notebook](https://github.com/optas/shape_representations/blob/master/shape_representations/notebooks/extract_shape_implicits_for_shapetalk_classes.ipynb)
 
 Make sure to change the values of `top_shapenet_dir`, `top_partnet_dir`, `top_modelnet_dir`, `top_output_dir` to your setting.
