@@ -13,13 +13,11 @@ The main dependencies consist of:
 - pytorch 
 - PyMCubes 
 
-You can do this by: 
+Most of these are already inside the `changeit3d` conda environment. As such, you can:
 ```bash
-conda create -n imnet python=3.5 
-conda activate imnet
-pip install scipy numpy h5py tqdm pandas dill
+conda activate changeit3d 
+pip install h5py tqdm pandas dill
 pip install --upgrade PyMCubes
-conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
 ```
 
 ## Preprocessing of data
