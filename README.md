@@ -16,7 +16,7 @@ The main dependencies consist of:
 Most of these are already inside the `changeit3d` conda environment. As such, you can:
 ```bash
 conda activate changeit3d 
-pip install h5py tqdm pandas dill
+pip install h5py dill
 pip install --upgrade PyMCubes
 ```
 
