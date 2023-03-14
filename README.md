@@ -23,7 +23,7 @@ pip install --upgrade PyMCubes
 ## Preprocessing of data
 
 If you wish to retrain ImNet, or simply encode shapes with it,  first thing that needs to be done is to create voxel representations of the occupancy fields of shapes given the meshes. The way to do that is by running the implicit extraction code in the `shape_representations` repo:
-[jupyter notebook](https://github.com/optas/shape_representations/blob/master/shape_representations/notebooks/extract_shape_implicits_for_shapetalk_classes.ipynb)
+[jupyter notebook](https://github.com/optas/shape_representations/blob/master/shape_representations/notebooks/extract_shape_implicits_for_shapetalk_classes.ipynb). (_If you simply want to decode latent codes (e.g., output of ChangeIt3D) you can skip directly to the next paragraph_)
 
 Make sure to change the values of `top_shapenet_dir`, `top_partnet_dir`, `top_modelnet_dir`, `top_output_dir` to your setting.
 
@@ -50,8 +50,10 @@ wget http://download.cs.stanford.edu/orion/changeit3d/ckpt_ShapeTalkClasses_pub.
 unzip ckpt_ShapeTalkClasses_pub.zip
 ```
 
-Run `python latents_interface.py` to create a pickle object that can be used to extract and decode IM-NET latents.
-Make sure to double check that the default commandline arguments within `latent_interface.py` are suitable 
+ ~~Run `python latents_interface.py` to create a pickle object that can be used to extract and decode IM-NET latents.
+Make sure to double check that the default commandline arguments within `latent_interface.py` are suitable~~
+
+Run `.  get_pikled_AE_interface.sh` to create a pickle object that can be used to extract and decode IM-NET latents.
 
 This interface object can be loaded and used like so:
 
