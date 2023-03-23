@@ -595,7 +595,7 @@ class IM_AE(object):
 						z_coords = self.cell_z+(k-1)*dimc
 						model_float[x_coords+1,y_coords+1,z_coords+1] = 1.0
 		
-		print("running queue:",len(queue))
+		# print("running queue:",len(queue))
 		cell_batch_size = dimc**3
 		cell_batch_num = int(self.test_point_batch_size/cell_batch_size)
 		assert cell_batch_num>0
