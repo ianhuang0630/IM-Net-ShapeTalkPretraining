@@ -50,7 +50,7 @@ wget http://download.cs.stanford.edu/orion/changeit3d/ckpt_ShapeTalkClasses_pub.
 unzip ckpt_ShapeTalkClasses_pub.zip
 ```
 
-Run `.  get_pickled_AE_interface.sh` to create a pickle object that can be used to extract and decode IM-NET latents.
+Run `./get_pickled_AE_interface.sh` to create a pickle object that can be used to extract and decode IM-NET latents.
 
 This interface object can be loaded and used like so:
 
