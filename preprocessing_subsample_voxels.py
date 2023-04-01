@@ -101,9 +101,16 @@ def get_points_from_vox(q, name_list, scale_list):
         voxel_model_256_ = np.zeros([256, 256, 256], np.uint8)
         is_, js_, ks_ = np.where(voxel_model_256)
         scale = scale_list[idx] # replace!
-        is_ = np.round((is_ - 128)/scale + 128).astype(int)
-        js_ = np.round((js_ - 128)/scale + 128).astype(int)
-        ks_ = np.round((ks_ - 128)/scale + 128).astype(int)
+
+        # the coordinate ( (index+0.5) - 128 ) furthest from 0 needs to be 
+        # 
+        norms = np.sqrt(  (is_ + 0.5 - 128)**2 + (js_ + 0.5 - 128)**2 + (ks_+0.5 - 128)**2)
+        unit_norm_scale = np.max(norms)/128 # scaling so that voxels lie in unit sphere
+        print(unit_norm_scale)
+
+        is_ = np.round((is_ - 128)/(unit_norm_scale *scale) + 128).astype(int)
+        js_ = np.round((js_ - 128)/(unit_norm_scale *scale) + 128).astype(int)
+        ks_ = np.round((ks_ - 128)/(unit_norm_scale *scale) + 128).astype(int)
         voxel_model_256_[is_, js_, ks_] = 1 
         voxel_model_256 = voxel_model_256_
 
@@ -340,15 +347,14 @@ if __name__ == '__main__':
 
     #dir of voxel models
     # voxel_input = "/local-scratch/zhiqinc/shapenet_hsp/modelBlockedVoxels256/"+class_name[:8]+"/"
-   
-    assert len(sys.argv) == 4:
-        voxel_mat_toplevel = sys.argv[1] # '/orion/u/ianhuang/Laser/impl_ian2'
-        output_dir = sys.argv[2]  # 'vox_preprocessing2'
-        scaling_pickle = sys.argv[3]  #'/orion/u/ianhuang/shapetalk_retraining/scaling_used_in_rendered_imgs.pkl'
+    assert len(sys.argv) == 4 or len(sys.argv) == 5
+    voxel_mat_toplevel = sys.argv[1] # '/orion/u/ianhuang/Laser/impl_ian2'
+    output_dir = sys.argv[2]  # 'vox_preprocessing2'
+    scaling_pickle = sys.argv[3]  #'/orion/u/ianhuang/shapetalk_retraining/scaling_used_in_rendered_imgs.pkl'
 
     target_classes = None
-    if False: # if len(sys.argv) > 1:
-        target_classes_txt = sys.argv[1] 
+    if len(sys.argv) == 5: # if len(sys.argv) > 1:
+        target_classes_txt = sys.argv[4] 
         with open(target_classes_txt, 'r') as f:
             target_classes = [el.strip() for el in f.readlines()] 
     

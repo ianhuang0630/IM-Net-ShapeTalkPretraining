@@ -588,9 +588,21 @@ FLAGS = parser.parse_args()
 
 imw = ImNetWrapper(FLAGS)
 
+# VOXEL_OUTPUT_DIR = "vox_preprocessing3"
+# SPLITS_CSV = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv" 
+# MESH_OUTPUT_FOLDER="/orion/u/ianhuang/rm_me"
+# zs = imw.get_z(VOXEL_OUTPUT_DIR, SPLITS_CSV)
+# # saving zs to IMNet_shapetalk_latents_pub_scaled.pkl
+# pickle_data('IMNet_shapetalk_latents_pub_scaled.pkl', zs)
+# # imw.eval_z(zs, output_dir=MESH_OUTPUT_FOLDER, save_output=True)
+# print('Pickled the latents at IMNet_shapetalk_latents_pub_scaled.pkl')
+
 import dill as pickle
 
-with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
+with open('IMNET-latent-interface-ld3de-pub-scaled.pkl', 'wb') as f:
     pickle.dump(imw, f)
 
 print('Dilled the interface at IMNET-latent-interface-ld3de-pub.pkl')
+
+
+
