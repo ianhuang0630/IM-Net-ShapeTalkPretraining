@@ -1,4 +1,4 @@
-#IM-Net-ShapeTalkPretraining
+# IM-Net-ShapeTalkPretraining
 
 This page is a duplicate of the [original IMNet pytorch implementation](https://github.com/czq142857/IM-NET-pytorch),
 with some additional functionality that facilitates the retraining and data preprocessing for the ShapeTalk dataset.
