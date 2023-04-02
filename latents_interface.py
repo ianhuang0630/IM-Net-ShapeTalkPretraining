@@ -352,7 +352,7 @@ class ImNetWrapper(object):
     def __init__(self, config):
         self.config = config
         self.im_ae = IM_AE_inference(config)
-        checkpoint_txt = os.path.join(self.im_ae.checkpoint_path, "checkpoint")
+        checkpoint_txt = os.path.join(self.im_ae.checkpoint_path, "checkpoint")        
         if os.path.exists(checkpoint_txt):
             fin = open(checkpoint_txt)
             model_dir = fin.readline().strip()
@@ -584,22 +584,12 @@ parser.add_argument("--ae", action="store_true", dest="ae", default=False, help=
 parser.add_argument("--svr", action="store_true", dest="svr", default=False, help="True for svr [False]")
 parser.add_argument("--getz", action="store_true", dest="getz", default=False, help="True for getting latent codes [False]")
 parser.add_argument("--z_postfix", default='_train_z.hdf5', type=str)
-FLAGS = parser.parse_args()
 
+FLAGS = parser.parse_args()
 imw = ImNetWrapper(FLAGS)
 
-# VOXEL_OUTPUT_DIR = "vox_preprocessing3"
-# SPLITS_CSV = "/orion/u/ianhuang/shapetalk_retraining/unary_splits.csv" 
-# MESH_OUTPUT_FOLDER="/orion/u/ianhuang/rm_me"
-# zs = imw.get_z(VOXEL_OUTPUT_DIR, SPLITS_CSV)
-# # saving zs to IMNet_shapetalk_latents_pub_scaled.pkl
-# pickle_data('IMNet_shapetalk_latents_pub_scaled.pkl', zs)
-# # imw.eval_z(zs, output_dir=MESH_OUTPUT_FOLDER, save_output=True)
-# print('Pickled the latents at IMNet_shapetalk_latents_pub_scaled.pkl')
-
 import dill as pickle
-
-with open('IMNET-latent-interface-ld3de-pub-scaled.pkl', 'wb') as f:
+with open('IMNET-latent-interface-ld3de-pub.pkl', 'wb') as f:
     pickle.dump(imw, f)
 
 print('Dilled the interface at IMNET-latent-interface-ld3de-pub.pkl')
