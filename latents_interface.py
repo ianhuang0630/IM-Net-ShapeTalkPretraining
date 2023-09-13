@@ -542,6 +542,9 @@ class ImNetWrapper(object):
             if optimize_mesh:
                 vertices = self.im_ae.optimize_mesh(vertices,model_z)
 
+            # applying constant scaling factor to account for scale-down in preprocessing.
+            vertices = vertices * 2
+            
             if return_results:
                 meshes[ids[i]] = (vertices, triangles)
                         
